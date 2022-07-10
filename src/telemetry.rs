@@ -3,17 +3,14 @@ use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
 use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
 
-const APP_NAME: &str = "t8blog";
-const ENV_FILTER: &str = "info";
-const SINK: fn() -> std::io::Stdout = std::io::stdout;
-
 pub fn init_telemetry() {
-    let subscriber = get_subscriber(APP_NAME.into(), ENV_FILTER.into(), SINK);
+    let subscriber_name = std::env::var("SUBSCRIBER_NAME").unwrap_or_else(|_| "t8blog".into());
+    let subscriber = get_subscriber(subscriber_name, "info".into(), std::io::stdout);
     init_subscriber(subscriber);
 }
 
 fn get_subscriber<Sink>(
-    app_name: String,
+    name: String,
     env_filter: String,
     sink: Sink,
 ) -> impl Subscriber + Sync + Send
@@ -22,7 +19,7 @@ where
 {
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
-    let formatting_layer = BunyanFormattingLayer::new(app_name, sink);
+    let formatting_layer = BunyanFormattingLayer::new(name, sink);
     Registry::default()
         .with(env_filter)
         .with(JsonStorageLayer)
