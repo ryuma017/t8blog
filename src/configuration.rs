@@ -38,9 +38,23 @@ pub struct Settings {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
-    pub host: String,
+    host: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
-    pub port: u16,
+    port: u16,
+}
+
+impl ApplicationSettings {
+    pub fn host(&self) -> &str {
+        self.host.as_str()
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+
+    pub fn assign_random_port(&mut self) {
+        self.port = 0
+    }
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
