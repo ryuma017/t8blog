@@ -1,7 +1,4 @@
-use t8blog::{
-    startup::Application,
-    configuration::get_configuration
-};
+use t8blog::{configuration::get_configuration, startup::Application};
 
 pub struct TestApp {
     pub address: String,
@@ -15,7 +12,9 @@ pub async fn spawn_app() -> TestApp {
         c
     };
 
-    let application = Application::build(configuration).await.expect("Failed to build application.");
+    let application = Application::build(configuration)
+        .await
+        .expect("Failed to build application.");
     let application_port = application.port();
     let _ = tokio::spawn(application.run_server());
 
