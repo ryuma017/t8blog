@@ -70,7 +70,7 @@ pub struct DatabaseSettings {
     port: u16,
     username: String,
     password: Secret<String>,
-    database_name: String,
+    pub database_name: String,
     require_ssl: bool,
 }
 
