@@ -1,9 +1,12 @@
 use std::net::TcpListener;
+use std::time::Duration;
 
+use actix_web::web::Data;
 use actix_web::{dev::Server, web, App, HttpServer};
+use sqlx::{postgres::PgPoolOptions, PgPool};
 use tracing_actix_web::TracingLogger;
 
-use crate::configuration::Settings;
+use crate::configuration::{DatabaseSettings, Settings};
 use crate::routes::health_check;
 
 pub struct Application {
@@ -13,6 +16,7 @@ pub struct Application {
 
 impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
+        let connection_pool = get_connection_pool(&configuration.database);
         let address = format!(
             "{}:{}",
             configuration.application.host(),
@@ -20,7 +24,7 @@ impl Application {
         );
         let listener = TcpListener::bind(address)?;
         let port = listener.local_addr().unwrap().port();
-        let server = build_server(listener)?;
+        let server = build_server(listener, connection_pool)?;
 
         Ok(Self { port, server })
     }
@@ -34,11 +38,19 @@ impl Application {
     }
 }
 
-fn build_server(listener: TcpListener) -> Result<Server, std::io::Error> {
+pub fn get_connection_pool(database_settings: &DatabaseSettings) -> PgPool {
+    PgPoolOptions::new()
+        .acquire_timeout(Duration::from_secs(2))
+        .connect_lazy_with(database_settings.connect_options_with_db())
+}
+
+fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server, std::io::Error> {
+    let connection_pool = Data::new(connection_pool);
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
+            .app_data(connection_pool.clone())
     })
     .listen(listener)?
     .run();

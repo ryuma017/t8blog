@@ -7,7 +7,6 @@ use sqlx::{
     postgres::{PgConnectOptions, PgSslMode},
     ConnectOptions,
 };
-use tracing_subscriber::registry::Data;
 
 pub enum Environment {
     Local,
@@ -76,7 +75,7 @@ pub struct DatabaseSettings {
 }
 
 impl DatabaseSettings {
-    pub fn without_db(&self) -> PgConnectOptions {
+    pub fn connect_options_without_db(&self) -> PgConnectOptions {
         let ssl_mode = if self.require_ssl {
             PgSslMode::Require
         } else {
@@ -90,8 +89,10 @@ impl DatabaseSettings {
             .ssl_mode(ssl_mode)
     }
 
-    pub fn with_db(&self) -> PgConnectOptions {
-        let mut connect_options = self.without_db().database(&self.database_name);
+    pub fn connect_options_with_db(&self) -> PgConnectOptions {
+        let mut connect_options = self
+            .connect_options_without_db()
+            .database(&self.database_name);
         connect_options.log_statements(tracing::log::LevelFilter::Trace);
         connect_options
     }
