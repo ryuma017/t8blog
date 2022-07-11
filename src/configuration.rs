@@ -1,7 +1,13 @@
 use std::convert::TryInto;
 
 use config::{Config, File};
+use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
+use sqlx::{
+    postgres::{PgConnectOptions, PgSslMode},
+    ConnectOptions,
+};
+use tracing_subscriber::registry::Data;
 
 pub enum Environment {
     Local,
@@ -34,6 +40,7 @@ impl TryInto<Environment> for String {
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub application: ApplicationSettings,
+    pub database: DatabaseSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -54,6 +61,39 @@ impl ApplicationSettings {
 
     pub fn assign_random_port(&mut self) {
         self.port = 0
+    }
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct DatabaseSettings {
+    host: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    port: u16,
+    username: String,
+    password: Secret<String>,
+    database_name: String,
+    require_ssl: bool,
+}
+
+impl DatabaseSettings {
+    pub fn without_db(&self) -> PgConnectOptions {
+        let ssl_mode = if self.require_ssl {
+            PgSslMode::Require
+        } else {
+            PgSslMode::Prefer
+        };
+        PgConnectOptions::new()
+            .username(&self.username)
+            .password(self.password.expose_secret())
+            .host(&self.host)
+            .port(self.port)
+            .ssl_mode(ssl_mode)
+    }
+
+    pub fn with_db(&self) -> PgConnectOptions {
+        let mut connect_options = self.without_db().database(&self.database_name);
+        connect_options.log_statements(tracing::log::LevelFilter::Trace);
+        connect_options
     }
 }
 

@@ -1,6 +1,10 @@
 use once_cell::sync::Lazy;
 
-use t8blog::{configuration::get_configuration, startup::Application, telemetry::{get_subscriber, init_subscriber}};
+use t8blog::{
+    configuration::get_configuration,
+    startup::Application,
+    telemetry::{get_subscriber, init_subscriber},
+};
 
 static TRACING: Lazy<()> = Lazy::new(|| {
     let default_filter_level = "info".to_owned();

@@ -1,4 +1,8 @@
-use t8blog::{configuration::get_configuration, startup::Application, telemetry::{get_subscriber, init_subscriber}};
+use t8blog::{
+    configuration::get_configuration,
+    startup::Application,
+    telemetry::{get_subscriber, init_subscriber},
+};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
