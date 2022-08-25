@@ -1,13 +1,12 @@
 use std::net::TcpListener;
 use std::time::Duration;
 
-use actix_web::web::Data;
-use actix_web::{dev::Server, web, App, HttpServer};
+use actix_web::{dev::Server, web::{self, Data}, App, HttpServer, middleware::NormalizePath};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::routes::health_check;
+use crate::routes::{health_check, users::create_user};
 
 pub struct Application {
     port: u16,
@@ -49,7 +48,9 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(NormalizePath::trim())
             .route("/health_check", web::get().to(health_check))
+            .service(web::scope("/users").route("", web::post().to(create_user)))
             .app_data(connection_pool.clone())
     })
     .listen(listener)?

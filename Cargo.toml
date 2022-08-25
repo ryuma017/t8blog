@@ -12,7 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 actix-web = "4.1.0"
-chrono = "0.4.19"
+chrono = { version = "0.4.19", features = ["serde"]}
 config = { version = "0.13.1", default-features = false, features = ["yaml"] }
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = "1.0.138"
