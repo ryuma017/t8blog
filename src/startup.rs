@@ -1,12 +1,16 @@
-use std::net::TcpListener;
-use std::time::Duration;
+use std::{net::TcpListener, time::Duration};
 
-use actix_web::{dev::Server, web::{self, Data}, App, HttpServer, middleware::NormalizePath};
+use actix_web::{
+    dev::Server,
+    middleware::NormalizePath,
+    web::{self, Data},
+    App, HttpServer,
+};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::{DatabaseSettings, Settings};
-use crate::routes::{health_check, users::create_user};
+use crate::routes::{create_user, health_check};
 
 pub struct Application {
     port: u16,
