@@ -24,6 +24,21 @@ pub struct TestApp {
     pub address: String,
     pub port: u16,
     pub connection_pool: PgPool,
+    pub api_client: reqwest::Client,
+}
+
+impl TestApp {
+    pub async fn post_users<Json>(&self, json: &Json) -> reqwest::Response
+    where
+        Json: serde::Serialize,
+    {
+        self.api_client
+            .post(&format!("{}/users", self.address))
+            .json(json)
+            .send()
+            .await
+            .unwrap()
+    }
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -45,10 +60,16 @@ pub async fn spawn_app() -> TestApp {
     let application_port = application.port();
     let _ = tokio::spawn(application.run_server());
 
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
     TestApp {
         address: format!("http://localhost:{}", application_port),
         port: application_port,
         connection_pool: get_connection_pool(&configuration.database),
+        api_client: client,
     }
 }
 
