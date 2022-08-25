@@ -1,7 +1,6 @@
 use actix_web::{web, HttpResponse};
 use chrono::NaiveDateTime;
 use sqlx::PgPool;
-use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
 pub struct Body {
@@ -10,10 +9,10 @@ pub struct Body {
 
 #[derive(serde::Deserialize)]
 pub struct Users {
-    id: Uuid,
+    id: i64,
     name: String,
     create_timestamp: NaiveDateTime,
-    update_timestamp: Option<NaiveDateTime>,
+    update_timestamp: NaiveDateTime,
 }
 
 pub async fn create_user(json: web::Json<Body>, pool: web::Data<PgPool>) -> HttpResponse {
@@ -31,23 +30,21 @@ pub async fn create_user(json: web::Json<Body>, pool: web::Data<PgPool>) -> Http
 }
 
 async fn insert_user(pool: &PgPool, body: &Body) -> Users {
-    let user_id = Uuid::new_v4();
     let username = &body.name;
 
     sqlx::query_as!(
         Users,
         r#"
     INSERT INTO users (
-        id, name, create_timestamp, update_timestamp
+        name, create_timestamp, update_timestamp
     )
     VALUES (
-        $1, $2, current_timestamp, current_timestamp
+        $1, current_timestamp, current_timestamp
     )
     RETURNING
         id, name, create_timestamp, update_timestamp
     ;
             "#,
-        user_id,
         username,
     )
     .fetch_one(pool)

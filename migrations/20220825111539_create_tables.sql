@@ -1,14 +1,14 @@
 CREATE TABLE users (
-    id               UUID NOT NULL,
+    id               BIGSERIAL NOT NULL,
     name             TEXT NOT NULL,
     create_timestamp TIMESTAMP NOT NULL,
-    update_timestamp TIMESTAMP,
+    update_timestamp TIMESTAMP NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE articles (
-    id               UUID NOT NULL,
-    author_id        UUID NOT NULL,
+    id               BIGSERIAL NOT NULL,
+    author_id        BIGINT NOT NULL,
     title            TEXT NOT NULL,
     content          TEXT NOT NULL,
     like_count       INTEGER NOT NULL DEFAULT 0,
@@ -19,9 +19,9 @@ CREATE TABLE articles (
 );
 
 CREATE TABLE likes (
-    id               UUID NOT NULL,
-    article_id       UUID NOT NULL,
-    user_id          UUID NOT NULL,
+    id               BIGSERIAL NOT NULL,
+    article_id       BIGINT NOT NULL,
+    user_id          BIGINT NOT NULL,
     create_timestamp TIMESTAMP DEFAULT '1000-01-01 00:00:00',
     UNIQUE (user_id, article_id),
     PRIMARY KEY (id),
