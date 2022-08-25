@@ -54,8 +54,18 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
             .wrap(TracingLogger::default())
             .wrap(NormalizePath::trim())
             .route("/health_check", web::get().to(health_check))
-            .service(web::scope("/users").route("", web::post().to(create_user)))
+            .service(
+                web::scope("/users")
+                    .route("", web::post().to(create_user))
+                    .service(
+                        web::resource("/{name}")
+                            .name("user_detail")
+                            .route(web::get().to(actix_web::HttpResponse::Ok)) // TODO
+                            .route(web::patch().to(actix_web::HttpResponse::Ok)) // TODO
+                            .route(web::delete().to(actix_web::HttpResponse::Ok)) // TODO
+            )
             .app_data(connection_pool.clone())
+        )
     })
     .listen(listener)?
     .run();
