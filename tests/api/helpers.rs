@@ -39,6 +39,14 @@ impl TestApp {
             .await
             .unwrap()
     }
+
+    pub async fn get_users(&self, user_id: i64) -> reqwest::Response {
+        self.api_client
+            .get(&format!("{}/users/{}", self.address, user_id))
+            .send()
+            .await
+            .unwrap()
+    }
 }
 
 pub async fn spawn_app() -> TestApp {

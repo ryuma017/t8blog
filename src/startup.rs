@@ -9,8 +9,10 @@ use actix_web::{
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tracing_actix_web::TracingLogger;
 
-use crate::configuration::{DatabaseSettings, Settings};
-use crate::routes::{create_user, health_check};
+use crate::{
+    configuration::{DatabaseSettings, Settings},
+    routes::{get_users, health_check, post_users},
+};
 
 pub struct Application {
     port: u16,
@@ -56,11 +58,11 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
             .route("/health_check", web::get().to(health_check))
             .service(
                 web::scope("/users")
-                    .route("", web::post().to(create_user))
+                    .route("", web::post().to(post_users))
                     .service(
-                        web::resource("/{name}")
+                        web::resource("/{user_id}")
                             .name("user_detail")
-                            .route(web::get().to(actix_web::HttpResponse::Ok)) // TODO
+                            .route(web::get().to(get_users)) // TODO
                             .route(web::patch().to(actix_web::HttpResponse::Ok)) // TODO
                             .route(web::delete().to(actix_web::HttpResponse::Ok)), // TODO
                     )
