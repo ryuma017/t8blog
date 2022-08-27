@@ -34,16 +34,16 @@ async fn insert_user(username: &str, pool: &PgPool) -> Users {
     sqlx::query_as!(
         Users,
         r#"
-        INSERT INTO users (
-            name, create_timestamp, update_timestamp
-        )
-        VALUES (
-            $1, current_timestamp, current_timestamp
-        )
-        RETURNING
-            id, name, create_timestamp, update_timestamp
-        ;
-            "#,
+    INSERT INTO users (
+        name, create_timestamp, update_timestamp
+    )
+    VALUES (
+        $1, current_timestamp, current_timestamp
+    )
+    RETURNING
+        id, name, create_timestamp, update_timestamp
+    ;
+        "#,
         username,
     )
     .fetch_one(pool)
@@ -101,11 +101,13 @@ pub async fn patch_users(
 async fn update_username(user_id: i64, new_username: &str, pool: &PgPool) {
     sqlx::query!(
         r#"
-        UPDATE users
-        SET
-            name = $1, update_timestamp = current_timestamp
-        WHERE
-            id = $2
+    UPDATE
+        users
+    SET
+        name = $1, update_timestamp = current_timestamp
+    WHERE
+        id = $2
+    ;
         "#,
         new_username,
         user_id,
@@ -129,9 +131,11 @@ pub async fn delete_users(user_id: web::Path<i64>, pool: web::Data<PgPool>) -> H
 async fn delete_user_by_id(user_id: i64, pool: &PgPool) {
     sqlx::query!(
         r#"
-        DELETE FROM users
-        WHERE
-            id = $1
+    DELETE FROM
+        users
+    WHERE
+        id = $1
+    ;
         "#,
         user_id,
     )
