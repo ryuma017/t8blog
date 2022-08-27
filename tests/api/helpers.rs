@@ -47,6 +47,26 @@ impl TestApp {
             .await
             .unwrap()
     }
+
+    pub async fn patch_users<Json>(&self, user_id: i64, json: &Json) -> reqwest::Response
+    where
+        Json: serde::Serialize,
+    {
+        self.api_client
+            .patch(&format!("{}/users/{}", self.address, user_id))
+            .json(json)
+            .send()
+            .await
+            .unwrap()
+    }
+
+    pub async fn delete_users(&self, user_id: i64) -> reqwest::Response {
+        self.api_client
+            .delete(&format!("{}/users/{}", self.address, user_id))
+            .send()
+            .await
+            .unwrap()
+    }
 }
 
 pub async fn spawn_app() -> TestApp {
