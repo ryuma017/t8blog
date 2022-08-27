@@ -20,7 +20,9 @@ pub struct Body {
 
 // `POST /users`
 pub async fn post_users(json: web::Json<Body>, pool: web::Data<PgPool>) -> HttpResponse {
-    let user = insert_user(&pool, &json).await;
+    let username = &*json.name;
+
+    let user = insert_user(username, &pool).await;
 
     HttpResponse::Created().json(serde_json::json!({
         "status": "Ok",
@@ -28,9 +30,7 @@ pub async fn post_users(json: web::Json<Body>, pool: web::Data<PgPool>) -> HttpR
     }))
 }
 
-async fn insert_user(pool: &PgPool, body: &Body) -> Users {
-    let username = &body.name;
-
+async fn insert_user(username: &str, pool: &PgPool, ) -> Users {
     sqlx::query_as!(
         Users,
         r#"
@@ -80,4 +80,33 @@ async fn get_user_info_by_id(user_id: i64, pool: &PgPool) -> Users {
     .fetch_one(pool)
     .await
     .unwrap() // FIXME
+}
+
+// `PATCH /users/{user_id}`
+pub async fn patch_users(user_id: web::Path<i64>, json: web::Json<Body>, pool: web::Data<PgPool>) -> HttpResponse {
+    let user_id = user_id.into_inner();
+    let new_username = &*json.name;
+
+    update_username(user_id, new_username, &pool).await;
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "Ok",
+    }))
+}
+
+async fn update_username(user_id: i64, new_username: &str, pool: &PgPool) {
+    sqlx::query!(
+        r#"
+        UPDATE users
+        SET
+            name = $1, update_timestamp = current_timestamp
+        WHERE
+            id = $2
+        "#,
+        new_username,
+        user_id,
+    )
+    .execute(pool)
+    .await
+    .unwrap(); // FIXME
 }

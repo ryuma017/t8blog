@@ -13,14 +13,14 @@ async fn post_users_persists_the_new_user() {
 
     // Act
     let response = app.post_users(&json).await;
-    assert_eq!(201, response.status().as_u16());
 
     // Assert
+    assert_eq!(201, response.status().as_u16());
+
     let saved = sqlx::query!("SELECT name FROM users;")
         .fetch_one(&app.connection_pool)
         .await
         .expect("Failed to fetch a saved user");
-
     assert_eq!(username, saved.name);
 }
 
@@ -34,7 +34,7 @@ async fn get_users_returns_the_user_info() {
     });
     // create a user
     let response = app.post_users(&json).await;
-    assert_eq!(200, response.status().as_u16());
+    assert_eq!(201, response.status().as_u16());
     let post_result_json = response.json::<Value>().await.unwrap();
 
     // Act
@@ -58,7 +58,7 @@ async fn patch_users_changes_the_username() {
     });
     // create a user
     let response = app.post_users(&json).await;
-    assert_eq!(200, response.status().as_u16());
+    assert_eq!(201, response.status().as_u16());
     let post_result_json = response.json::<Value>().await.unwrap();
     let user_id = post_result_json["data"]["id"].as_i64().unwrap();
 
@@ -94,7 +94,7 @@ async fn delete_users_deletes_the_user() {
     });
     // create a user
     let response = app.post_users(&json).await;
-    assert_eq!(200, response.status().as_u16());
+    assert_eq!(201, response.status().as_u16());
     let post_result_json = response.json::<Value>().await.unwrap();
     let user_id = post_result_json["data"]["id"].as_i64().unwrap();
 
