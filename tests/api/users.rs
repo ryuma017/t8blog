@@ -7,9 +7,7 @@ async fn post_users_persists_the_new_user() {
     // Arrange
     let app = spawn_app().await;
     let username = "username";
-    let json = serde_json::json!({
-        "name": username
-    });
+    let json = serde_json::json!({ "name": username });
 
     // Act
     let response = app.post_users(&json).await;
@@ -63,9 +61,7 @@ async fn patch_users_changes_the_username() {
     let user_id = post_result_json["data"]["id"].as_i64().unwrap();
 
     let new_username = "new_username";
-    let patch_json = serde_json::json!({
-        "name": new_username
-    });
+    let patch_json = serde_json::json!({ "name": new_username });
 
     // Act
     let patch_result_json = app
@@ -109,7 +105,7 @@ async fn delete_users_deletes_the_user() {
     // Assert
     assert_eq!(Some("Ok"), delete_result_json["status"].as_str());
 
-    let saved = sqlx::query!("SELECT name FROM users;")
+    let saved = sqlx::query!("SELECT * FROM users;")
         .fetch_optional(&app.connection_pool)
         .await
         .expect("Failed to fetch optional");
