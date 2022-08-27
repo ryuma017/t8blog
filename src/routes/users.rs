@@ -30,7 +30,7 @@ pub async fn post_users(json: web::Json<Body>, pool: web::Data<PgPool>) -> HttpR
     }))
 }
 
-async fn insert_user(username: &str, pool: &PgPool, ) -> Users {
+async fn insert_user(username: &str, pool: &PgPool) -> Users {
     sqlx::query_as!(
         Users,
         r#"
@@ -83,7 +83,11 @@ async fn get_user_info_by_id(user_id: i64, pool: &PgPool) -> Users {
 }
 
 // `PATCH /users/{user_id}`
-pub async fn patch_users(user_id: web::Path<i64>, json: web::Json<Body>, pool: web::Data<PgPool>) -> HttpResponse {
+pub async fn patch_users(
+    user_id: web::Path<i64>,
+    json: web::Json<Body>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
     let user_id = user_id.into_inner();
     let new_username = &*json.name;
 
@@ -104,6 +108,31 @@ async fn update_username(user_id: i64, new_username: &str, pool: &PgPool) {
             id = $2
         "#,
         new_username,
+        user_id,
+    )
+    .execute(pool)
+    .await
+    .unwrap(); // FIXME
+}
+
+// `DELETE /users/{user_id}`
+pub async fn delete_users(user_id: web::Path<i64>, pool: web::Data<PgPool>) -> HttpResponse {
+    let user_id = user_id.into_inner();
+
+    delete_user_by_id(user_id, &pool).await;
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "Ok",
+    }))
+}
+
+async fn delete_user_by_id(user_id: i64, pool: &PgPool) {
+    sqlx::query!(
+        r#"
+        DELETE FROM users
+        WHERE
+            id = $1
+        "#,
         user_id,
     )
     .execute(pool)

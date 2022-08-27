@@ -11,7 +11,7 @@ use tracing_actix_web::TracingLogger;
 
 use crate::{
     configuration::{DatabaseSettings, Settings},
-    routes::{get_users, health_check, post_users, patch_users},
+    routes::{delete_users, get_users, health_check, patch_users, post_users},
 };
 
 pub struct Application {
@@ -64,7 +64,7 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
                             .name("user_detail")
                             .route(web::get().to(get_users))
                             .route(web::patch().to(patch_users)) // TODO
-                            .route(web::delete().to(actix_web::HttpResponse::Ok)), // TODO
+                            .route(web::delete().to(delete_users)), // TODO
                     )
                     .app_data(connection_pool.clone()),
             )
