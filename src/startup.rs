@@ -4,7 +4,7 @@ use actix_web::{
     dev::Server,
     middleware::NormalizePath,
     web::{self, Data},
-    App, HttpServer,
+    App, HttpResponse, HttpServer,
 };
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tracing_actix_web::TracingLogger;
@@ -60,8 +60,25 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
                 web::scope("/users")
                     .route("", web::post().to(post_users))
                     .route("/{user_id}", web::get().to(get_users))
-                    .route("/{user_id}", web::patch().to(patch_users)) // TODO
-                    .route("/{user_id}", web::delete().to(delete_users)), // TODO
+                    .route("/{user_id}", web::patch().to(patch_users))
+                    .route("/{user_id}", web::delete().to(delete_users)),
+            )
+            .service(
+                web::scope("/articles")
+                    .route("", web::post().to(HttpResponse::InternalServerError)) // TODO
+                    .route("", web::get().to(HttpResponse::InternalServerError)) // TODO
+                    .route(
+                        "/{article_id}",
+                        web::get().to(HttpResponse::InternalServerError),
+                    )
+                    .route(
+                        "/{article_id}",
+                        web::patch().to(HttpResponse::InternalServerError),
+                    ) // TODO
+                    .route(
+                        "/{article_id}",
+                        web::delete().to(HttpResponse::InternalServerError),
+                    ), // TODO
             )
             .app_data(connection_pool.clone())
     })
