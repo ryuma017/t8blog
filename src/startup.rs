@@ -59,15 +59,11 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
             .service(
                 web::scope("/users")
                     .route("", web::post().to(post_users))
-                    .service(
-                        web::resource("/{user_id}")
-                            .name("user_detail")
-                            .route(web::get().to(get_users))
-                            .route(web::patch().to(patch_users)) // TODO
-                            .route(web::delete().to(delete_users)), // TODO
-                    )
-                    .app_data(connection_pool.clone()),
+                    .route("/{user_id}", web::get().to(get_users))
+                    .route("/{user_id}", web::patch().to(patch_users)) // TODO
+                    .route("/{user_id}", web::delete().to(delete_users)), // TODO
             )
+            .app_data(connection_pool.clone())
     })
     .listen(listener)?
     .run();
