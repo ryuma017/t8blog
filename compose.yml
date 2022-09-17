@@ -1,0 +1,10 @@
+services:
+  db:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: t8blog
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
