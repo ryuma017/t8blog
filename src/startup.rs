@@ -3,7 +3,7 @@ use std::{net::TcpListener, time::Duration};
 use actix_web::{
     dev::Server,
     middleware::NormalizePath,
-    web::{self, Data},
+    web::{self, service, Data},
     App, HttpResponse, HttpServer,
 };
 use sqlx::{postgres::PgPoolOptions, PgPool};
@@ -55,31 +55,28 @@ fn build_server(listener: TcpListener, connection_pool: PgPool) -> Result<Server
         App::new()
             .wrap(TracingLogger::default())
             .wrap(NormalizePath::trim())
-            .route("/health_check", web::get().to(health_check))
             .service(
                 web::scope("/users")
                     .route("", web::post().to(post_users))
-                    .route("/{user_id}", web::get().to(get_users))
-                    .route("/{user_id}", web::patch().to(patch_users))
-                    .route("/{user_id}", web::delete().to(delete_users)),
+                    .service(
+                        web::resource("/{user_id}")
+                            .route(web::get().to(get_users))
+                            .route(web::patch().to(patch_users))
+                            .route(web::delete().to(delete_users)),
+                    ),
             )
             .service(
                 web::scope("/articles")
                     .route("", web::post().to(HttpResponse::InternalServerError)) // TODO
                     .route("", web::get().to(HttpResponse::InternalServerError)) // TODO
-                    .route(
-                        "/{article_id}",
-                        web::get().to(HttpResponse::InternalServerError),
-                    )
-                    .route(
-                        "/{article_id}",
-                        web::patch().to(HttpResponse::InternalServerError),
-                    ) // TODO
-                    .route(
-                        "/{article_id}",
-                        web::delete().to(HttpResponse::InternalServerError),
-                    ), // TODO
+                    .service(
+                        web::resource("/{article_id}")
+                            .route(web::get().to(HttpResponse::InternalServerError)) // TODO
+                            .route(web::patch().to(HttpResponse::InternalServerError)) // TODO
+                            .route(web::delete().to(HttpResponse::InternalServerError)), // TODO
+                    ),
             )
+            .route("/health_check", web::get().to(health_check))
             .app_data(connection_pool.clone())
     })
     .listen(listener)?
