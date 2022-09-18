@@ -3,7 +3,7 @@ use std::{net::TcpListener, time::Duration};
 use actix_web::{
     dev::Server,
     middleware::NormalizePath,
-    web::{self, service, Data},
+    web::{self, Data},
     App, HttpResponse, HttpServer,
 };
 use sqlx::{postgres::PgPoolOptions, PgPool};
